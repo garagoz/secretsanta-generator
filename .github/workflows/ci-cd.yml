@@ -1,10 +1,7 @@
-
 name: CICD Pipeline  
 
 on:
   push:
-    branches: [ "master" ]
-  pull_request:
     branches: [ "master" ]
 
 jobs:
@@ -38,5 +35,49 @@ jobs:
     - name: Sonarqube Scan
       uses: sonarsource/sonarqube-scan-action@master
       env:
-        SONAR-TOKEN: ${{ secrets.SONAR-TOKEN }}
-        SONAR-HOST_URL: ${{ secrets.SONAR-HOST-URL }}
+        SONAR-TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR-HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+    - name: Install jq
+      run: sudo apt-get update && sudo apt-get install jq -y
+
+    - name: Sonarqube Quality Gate check
+      uses: sonarsource/sonarqube-quality-gate-action@master
+      # Force to fail step after specific time 
+      timeout-minutes: 5
+      env:
+        SONAR-TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR-HOST_URL: ${{ secrets.SONAR_HOST_URL }}    
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
+    - name: Build Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build Docker Image
+      run: |
+        docker build -t atorayew/secretsanta:latest .
+
+    - name: Trivy Image Scan
+      run: |
+        echo "Hello Arslanmyrat"
+        trivy image --format table -o trivy-image-report.html atorayew/secretsanta:latest
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Push Docker Image
+      run: |
+        docker push atorayew/secretsanta:latest
+
+    - name: Kubectl Action
+      uses: tale/kubectl-action@v1
+      with:
+        base64-kube-config: ${{ secrets.KUBE_CONFIG }}
+      run: |
+        kubectl apply -f deployment-service.yaml
+        kubectl get svc
