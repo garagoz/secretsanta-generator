@@ -33,3 +33,8 @@ jobs:
       with:
         name: my-artifact
         path: target/*.jar
+
+    - name: Trivy FS Scan
+      run: |
+        echo "Hello Arslanmyrat"
+        trivy fs --format table -o trivy-fs-report.html .     
