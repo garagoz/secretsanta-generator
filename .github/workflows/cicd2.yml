@@ -30,9 +30,25 @@ jobs:
       run: |
         echo "Hello Arslanmyrat"
         trivy fs --format table -o trivy-fs-report.html .
-        
+
+    # requires for sonar scanner    
+    - name: Install unzip
+      run: sudo apt-get update && sudo apt-get install unzip -y
+      
     - name: Sonarqube Scan
       uses: sonarsource/sonarqube-scan-action@master
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}     
+        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}  
+        
+    # requires for sonarqube quality check    
+    - name: Install jq
+      run: sudo apt-get update && sudo apt-get install jq -y
+
+    - name: Sonarqube Quality Gate check
+      uses: sonarsource/sonarqube-quality-gate-action@master
+      # Force to fail step after specific time 
+      timeout-minutes: 5
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}        
