@@ -19,6 +19,9 @@ jobs:
         distribution: 'temurin'
         cache: maven
         
+    - name: Maven Compile
+      run: mvn compile    
+        
     - name: Maven Test
       run: mvn test
       
