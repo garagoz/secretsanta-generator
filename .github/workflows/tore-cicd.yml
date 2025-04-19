@@ -77,6 +77,18 @@ jobs:
         cache: maven
     - name: Maven Build
       run: mvn package
+      
+    - name: Upload jar artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-jar
+        path: target/*.jar  
+        
+    - name: Download jar artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: app-jar
+        path: app # this will download jar artifact to ./app folder
 
     - name: Install unzip
       run: sudo apt install unzip -y
