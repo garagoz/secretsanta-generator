@@ -83,12 +83,6 @@ jobs:
       with:
         name: app-jar
         path: target/*.jar  
-        
-    - name: Download jar artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: app-jar
-        path: app # this will download jar artifact to ./app folder
 
     - name: Install unzip
       run: sudo apt install unzip -y
@@ -112,6 +106,42 @@ jobs:
       # Optionally you can use the output from the Quality Gate in another step.
       # The possible outputs of the `quality-gate-status` variable are `PASSED`, `WARN` or `FAILED`.
     - name: "Example show SonarQube Quality Gate Status value"
-      run: echo "The Quality Gate status is ${{ steps.sonarqube-quality-gate-check.outputs.quality-gate-status }}"        
+      run: echo "The Quality Gate status is ${{ steps.sonarqube-quality-gate-check.outputs.quality-gate-status }}"
+      
+  docker_build_and_push_job:
+    runs-on: self-hosted
+    needs: build_and_sonar_scan_job
+
+    steps:
+    - name: Download jar artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: app-jar
+        path: app # this will download jar artifact to ./app folder
+        
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
+    - name: Build Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build Docker Image
+      run: |
+        docker build -t atorayew/secretsanta:latest .
+
+    - name: Trivy Image Scan
+      run: |
+        echo "Hello Arslanmyrat"
+        trivy image --format table -o trivy-image-report.html atorayew/secretsanta:latest
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Push Docker Image
+      run: |
+        docker push atorayew/secretsanta:latest        
 
       
