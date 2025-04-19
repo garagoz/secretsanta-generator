@@ -7,7 +7,7 @@ on:
     branches: [ "master" ]
 
 jobs:
-  compile:
+  compile_job:
     runs-on: self-hosted
 
     steps:
@@ -21,8 +21,9 @@ jobs:
     - name: Compile with Maven
       run: mvn compile --file pom.xml
       
-  security_check:
+  security_check_job:
     runs-on: self-hosted
+    needs: compile_job
 
     steps:
     - uses: actions/checkout@v4
