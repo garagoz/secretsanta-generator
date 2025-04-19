@@ -142,6 +142,19 @@ jobs:
 
     - name: Push Docker Image
       run: |
-        docker push atorayew/secretsanta:latest        
+        docker push atorayew/secretsanta:latest
+        
+  doploy_to_kubernetes_job:
+    runs-on: self-hosted
+    needs: docker_build_and_push_job
 
+    steps:        
+    - name: Kubectl Action
+      uses: tale/kubectl-action@v1
+      with:
+        base64-kube-config: ${{ secrets.KUBE_CONFIG }}
+
+    - run: |
+        kubectl apply -f deployment-service.yaml
+        kubectl get svc
       
